@@ -1,0 +1,13 @@
+subprojects { project ->
+    project.pluginManager.withPlugin('com.android.library') {
+        project.android {
+            if (namespace == null) {
+                def ns = project.group.toString()
+                if (ns == null || ns.isEmpty()) {
+                    ns = "dev.fix." + project.name.replaceAll("[^a-zA-Z0-9_]", "_")
+                }
+                namespace ns
+            }
+        }
+    }
+}
