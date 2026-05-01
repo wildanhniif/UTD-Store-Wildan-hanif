@@ -9,11 +9,13 @@ import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/product/presentation/pages/crypto_page.dart';
 import '../../features/todo/presentation/pages/todo_page.dart';
 import '../../features/native/presentation/pages/native_page.dart';
+import '../../features/splash/presentation/pages/splash_page.dart';
+import '../../features/bookmark/presentation/pages/bookmark_page.dart';
 
 class AppRouter {
   // Mendefinisikan konfigurasi Router utama
   static final router = GoRouter(
-    initialLocation: '/', // Saat aplikasi dibuka, mulai dari path '/'
+    initialLocation: '/splash', // Mulai dari Splash Screen terlebih dahulu
     // Daftar semua jalan yang ada di aplikasi
     routes: [
       GoRoute(
@@ -53,6 +55,14 @@ class AppRouter {
       GoRoute(
         path: '/native',
         builder: (context, state) => const NativePage(),
+      ),
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashPage(),
+      ),
+      GoRoute(
+        path: '/bookmark',
+        builder: (context, state) => const BookmarkPage(),
       ),
     ],
     // errorBuilder akan terpanggil jika User membuka path yang tidak terdaftar
