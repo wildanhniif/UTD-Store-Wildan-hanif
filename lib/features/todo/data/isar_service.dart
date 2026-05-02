@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import '../domain/todo_model.dart';
+import '../../bookmark/domain/bookmark_model.dart';
 
 class IsarService {
   late Future<Isar> db;
@@ -15,43 +16,67 @@ class IsarService {
     if (Isar.instanceNames.isEmpty) {
       final dir = await getApplicationDocumentsDirectory(); // Cari folder HP
       return await Isar.open(
-        [TodoSchema], // Masukkan skema yang dihasilkan Build Runner
+        [TodoSchema, BookmarkModelSchema], // Masukkan skema yang dihasilkan Build Runner
         directory: dir.path,
       );
     }
     return Future.value(Isar.getInstance());
   }
 
-  // 2. CREATE: Menyimpan data baru
+  // 2. CREATE: Menyimpan data baru (TODO)
   Future<void> saveTodo(Todo newTodo) async {
     final isar = await db;
-    // Transaksi sinkron (writeTxnSync) untuk operasi tulis data
-    // Perhatikan isar.todos (todos dihasilkan secara otomatis oleh Isar Generator)
     isar.writeTxnSync<int>(() => isar.todos.putSync(newTodo));
   }
 
-  // 3. UPDATE: Mengubah status selesai/belum
+  // 3. UPDATE: Mengubah status selesai/belum (TODO)
   Future<void> updateTodoStatus(Id id, bool isCompleted) async {
     final isar = await db;
-    final todo = await isar.todos.get(id); // Cari datanya dulu
+    final todo = await isar.todos.get(id); 
     if (todo != null) {
       todo.isCompleted = isCompleted;
-      isar.writeTxnSync(() => isar.todos.putSync(todo)); // Timpa datanya
+      isar.writeTxnSync(() => isar.todos.putSync(todo)); 
     }
   }
 
-  // 4. DELETE: Menghapus data
+  // 4. DELETE: Menghapus data (TODO)
   Future<void> deleteTodo(Id id) async {
     final isar = await db;
     isar.writeTxnSync(() => isar.todos.deleteSync(id));
   }
 
-  // 5. READ & REACTIVE (Paling Keren!):
-  // Memancarkan Stream otomatis setiap kali ada data berubah di database
+  // 5. READ & REACTIVE: (TODO)
   Stream<List<Todo>> listenToTodos() async* {
     final isar = await db;
-    // watch(fireImmediately: true) artinya pancarkan data saat ini juga,
-    // lalu pantau terus perubahannya ke depan!
     yield* isar.todos.where().watch(fireImmediately: true);
+  }
+
+  // ===================== UTS BOOKMARK METHODS =====================
+
+  // 6. BOOKMARK: Simpan produk
+  Future<void> saveBookmark(BookmarkModel bookmark) async {
+    final isar = await db;
+    isar.writeTxnSync<int>(() => isar.bookmarkModels.putSync(bookmark));
+  }
+
+  // 7. BOOKMARK: Hapus berdasarkan productId
+  Future<void> removeBookmark(String productId) async {
+    final isar = await db;
+    isar.writeTxnSync(() {
+      isar.bookmarkModels.filter().productIdEqualTo(productId).deleteAllSync();
+    });
+  }
+
+  // 8. BOOKMARK: Cek status
+  Future<bool> isBookmarked(String productId) async {
+    final isar = await db;
+    final item = await isar.bookmarkModels.filter().productIdEqualTo(productId).findFirst();
+    return item != null;
+  }
+
+  // 9. BOOKMARK: Reactive Stream (Akan urut dari yang paling baru disimpan)
+  Stream<List<BookmarkModel>> listenToBookmarks() async* {
+    final isar = await db;
+    yield* isar.bookmarkModels.where().sortBySavedAtDesc().watch(fireImmediately: true);
   }
 }
