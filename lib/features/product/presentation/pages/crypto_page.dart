@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert'; // Untuk jsonDecode
 import 'package:flutter/foundation.dart'; // Untuk menggunakan fungsi compute()
+import '../../../../core/config/student_config.dart';
 
 // FUNGSI INI HARUS BERADA DI LUAR CLASS (TOP-LEVEL FUNCTION)
 // Fungsi ini akan dieksekusi oleh Isolate. Parameter yang diterima hanya boleh 1.
@@ -156,44 +157,29 @@ class _CryptoPageState extends State<CryptoPage> {
                 // Indikator ini harusnya berputar lancar 60 FPS
                 const CircularProgressIndicator(),
                 const SizedBox(height: 20),
-                
-                // TOMBOL UNTUK SIMULASI FREEZE MAIN THREAD
+                // 🔥 Logika Personal UTS: TOMBOL KALKULASI PAJAK KRIPTO (ISOLATE)
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: () {
-                    // FUNGSI BERAT DI MAIN THREAD (KASIR)
-                    if (kDebugMode) {
-                      print("Mulai menghitung...");
-                    }
-                    int hasil = 0;
-                    // Looping 4 Milyar kali! (Tergantung spek laptop/HP, ini butuh 2-5 detik)
-                    for (int i = 0; i < 4000000000; i++) {
-                      hasil += i;
-                    }
-                    if (kDebugMode) {
-                      print("Selesai! Hasilnya: $hasil");
-                    }
-                  },
-                  child: const Text('Siksa Main Thread (Layar akan Macet!)', style: TextStyle(color: Colors.white)),
-                ),
-                
-                const SizedBox(height: 10),
-                
-                // TOMBOL UNTUK MENGGUNAKAN ISOLATE
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15)
+                  ),
                   onPressed: () async {
+                    // [2 Digit Terakhir NIM Anda] x 10.000.000
+                    int n = StudentConfig.getLastTwoDigits();
+                    int loopCount = n * 10000000;
+                    
                     if (kDebugMode) {
-                      print("Mulai menghitung di Isolate...");
+                      print("Mulai menghitung pajak kripto di Isolate... (Loop: $loopCount kali)");
                     }
-                    // MENGGUNAKAN PEKERJA GUDANG!
-                    // compute(NamaFungsinya, Parameternya)
-                    int hasil = await compute(tugasMenghitungBerat, 4000000000);
+                    
+                    // MENGGUNAKAN PEKERJA GUDANG! (compute)
+                    int hasil = await compute(tugasMenghitungBerat, loopCount);
+                    
                     if (kDebugMode) {
-                      print("Selesai dari Isolate! Hasilnya: $hasil");
+                      print("Selesai dari Isolate! Hasil Kalkulasi Pajak: $hasil");
                     }
                   },
-                  child: const Text('Gunakan Isolate (Layar Tetap Lancar)', style: TextStyle(color: Colors.white)),
+                  child: const Text('Kalkulasi Pajak Kripto', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
