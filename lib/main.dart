@@ -4,6 +4,9 @@ import 'core/routing/app_router.dart';
 import 'core/di/injection.dart';
 
 void main() {
+  // SANGAT PENTING: Inisialisasi binding Flutter sebelum plugin native berjalan
+  WidgetsFlutterBinding.ensureInitialized();
+
   // SANGAT PENTING: Panggil Pelayan (GetIt) sebelum aplikasi berjalan!
   // Jika ini lupa dipanggil, aplikasi akan error layar merah.
   setupLocator();

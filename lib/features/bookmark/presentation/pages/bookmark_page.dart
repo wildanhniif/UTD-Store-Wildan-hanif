@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../todo/data/isar_service.dart';
-import '../domain/bookmark_model.dart';
+import '../../../todo/data/isar_service.dart';
+import '../../domain/bookmark_model.dart';
 import 'package:intl/intl.dart';
 
 class BookmarkPage extends StatefulWidget {

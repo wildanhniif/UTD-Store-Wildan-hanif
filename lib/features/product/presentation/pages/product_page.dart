@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
-import '../../todo/data/isar_service.dart';
-import '../../bookmark/domain/bookmark_model.dart';
-import '../domain/product_model.dart';
+import '../../../todo/data/isar_service.dart';
+import '../../../bookmark/domain/bookmark_model.dart';
+import '../../domain/product_model.dart';
 
 class ProductPage extends StatelessWidget {
   const ProductPage({super.key});

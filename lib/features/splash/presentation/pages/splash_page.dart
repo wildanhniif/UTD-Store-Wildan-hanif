@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/config/student_config.dart';
-import '../domain/splash_service.dart';
+import '../../domain/splash_service.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
