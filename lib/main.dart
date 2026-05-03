@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routing/app_router.dart';
 import 'core/di/injection.dart';
+import 'features/todo/data/isar_service.dart';
 
-void main() {
-  // SANGAT PENTING: Inisialisasi binding Flutter sebelum plugin native berjalan
+void main() async {
+  // WAJIB: Inisialisasi Flutter binding sebelum kode native/async berjalan
   WidgetsFlutterBinding.ensureInitialized();
 
-  // SANGAT PENTING: Panggil Pelayan (GetIt) sebelum aplikasi berjalan!
-  // Jika ini lupa dipanggil, aplikasi akan error layar merah.
+  // Inisialisasi Isar Database SEBELUM runApp — ini mencegah crash
+  await IsarService.init();
+
+  // Inisialisasi Dependency Injection (GetIt)
   setupLocator();
+
   runApp(const MainApp());
 }
 
@@ -18,12 +22,10 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ubah dari MaterialApp biasa menjadi MaterialApp.router
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'UTD Store - Wildan',
       theme: AppTheme.lightTheme,
-      // Masukkan konfigurasi rute yang sudah kita buat di Step 6
       routerConfig: AppRouter.router,
     );
   }
