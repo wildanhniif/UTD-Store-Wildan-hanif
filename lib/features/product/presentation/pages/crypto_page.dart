@@ -178,6 +178,15 @@ class _CryptoPageState extends State<CryptoPage> {
                     if (kDebugMode) {
                       print("Selesai dari Isolate! Hasil Kalkulasi Pajak: $hasil");
                     }
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Kalkulasi Selesai! Hasil Pajak: $hasil'),
+                          backgroundColor: Colors.blueAccent,
+                        ),
+                      );
+                    }
                   },
                   child: const Text('Kalkulasi Pajak Kripto', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
