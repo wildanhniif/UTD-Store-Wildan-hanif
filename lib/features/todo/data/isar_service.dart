@@ -3,25 +3,28 @@ import 'package:path_provider/path_provider.dart';
 import '../domain/todo_model.dart';
 import '../../bookmark/domain/bookmark_model.dart';
 
-// Database instance tunggal untuk seluruh aplikasi
 class IsarService {
   static Isar? _db;
 
-  // Dipanggil 1x dari main() sebelum runApp
+  /// Dipanggil sekali dari main() sebelum runApp().
+  /// Memakai nama DB 'utd_store' agar tidak konflik dengan DB lama ('default').
   static Future<void> init() async {
     if (_db != null && _db!.isOpen) return;
+
     final dir = await getApplicationDocumentsDirectory();
+
+    // Coba buka dengan nama baru untuk menghindari konflik skema
     _db = await Isar.open(
       [TodoSchema, BookmarkModelSchema],
       directory: dir.path,
+      name: 'utd_store', // 🔑 Nama baru → tidak konflik dengan DB lama
     );
   }
 
-  // Getter sinkron — aman karena init() sudah dipanggil duluan
+  /// Getter aman — hanya dipanggil setelah init() sukses
   Isar get _isar {
-    if (_db == null || !_db!.isOpen) {
-      throw StateError('IsarService belum diinisialisasi. Panggil IsarService.init() terlebih dahulu.');
-    }
+    assert(_db != null && _db!.isOpen,
+        'Panggil IsarService.init() di main() terlebih dahulu!');
     return _db!;
   }
 
@@ -70,7 +73,7 @@ class IsarService {
     return item != null;
   }
 
-  // 🔥 UTS Poin 3: Stream Reaktif tanpa setState — pakai watch()
+  // 🔥 UTS Poin 3: Reactive Stream tanpa setState — pakai watch() dari Isar
   Stream<List<BookmarkModel>> listenToBookmarks() {
     return _isar.bookmarkModels
         .where()

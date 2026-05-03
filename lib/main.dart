@@ -5,13 +5,18 @@ import 'core/di/injection.dart';
 import 'features/todo/data/isar_service.dart';
 
 void main() async {
-  // WAJIB: Inisialisasi Flutter binding sebelum kode native/async berjalan
+  // WAJIB: Pastikan binding Flutter siap sebelum kode async/native dijalankan
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi Isar Database SEBELUM runApp — ini mencegah crash
-  await IsarService.init();
+  // Inisialisasi Isar Database sebelum runApp (cegah crash di UI)
+  try {
+    await IsarService.init();
+  } catch (e) {
+    // Jika init gagal (misal emulator tidak kompatibel), app tetap berjalan
+    debugPrint('[IsarService] Gagal init: $e');
+  }
 
-  // Inisialisasi Dependency Injection (GetIt)
+  // Setup Dependency Injection (GetIt)
   setupLocator();
 
   runApp(const MainApp());
