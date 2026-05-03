@@ -32,8 +32,7 @@ class _NativePageState extends State<NativePage> {
   Future<void> _showNativeToast() async {
     try {
       await platform.invokeMethod('showToast', {
-        // Jawaban Post-Test 1: Mengirimkan Nama & NIM
-        "pesan": "WILDAN HANIF - 12345678"
+        "pesan": "WILDAN HANIF - 20123074"
       });
     } on PlatformException catch (e) {
       debugPrint("Gagal Toast: \${e.message}");

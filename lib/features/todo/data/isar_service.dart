@@ -3,93 +3,87 @@ import 'package:path_provider/path_provider.dart';
 import '../domain/todo_model.dart';
 import '../../bookmark/domain/bookmark_model.dart';
 
+// Singleton global — satu instance Isar untuk seluruh aplikasi
+Isar? _isarInstance;
+
 class IsarService {
-  late Future<Isar> db;
+  // Gunakan Completer agar openDB hanya dipanggil sekali meski banyak caller
+  static Future<Isar>? _dbFuture;
 
-  IsarService() {
-    db = openDB();
+  Future<Isar> get db async {
+    _dbFuture ??= _openDB();
+    return _dbFuture!;
   }
 
-  // 1. Membuka koneksi ke Database
-  Future<Isar> openDB() async {
-    // Jika sudah ada instance yang terbuka (dengan skema yang sama), pakai itu
-    if (Isar.instanceNames.isNotEmpty) {
-      final existing = Isar.getInstance();
-      if (existing != null) return existing;
-    }
-    
+  // Membuka koneksi database secara async (tidak memblokir main thread)
+  static Future<Isar> _openDB() async {
+    if (_isarInstance != null && _isarInstance!.isOpen) return _isarInstance!;
+
     final dir = await getApplicationDocumentsDirectory();
-    try {
-      return await Isar.open(
-        [TodoSchema, BookmarkModelSchema],
-        directory: dir.path,
-      );
-    } catch (e) {
-      // Jika skema konflik (database lama), hapus dan buka ulang
-      await Isar.open(
-        [TodoSchema, BookmarkModelSchema],
-        directory: dir.path,
-        name: 'utd_db',
-      );
-      return Isar.getInstance('utd_db')!;
-    }
+    _isarInstance = await Isar.open(
+      [TodoSchema, BookmarkModelSchema],
+      directory: dir.path,
+    );
+    return _isarInstance!;
   }
 
+  // ===================== TODO METHODS =====================
 
-  // 2. CREATE: Menyimpan data baru (TODO)
   Future<void> saveTodo(Todo newTodo) async {
     final isar = await db;
-    isar.writeTxnSync<int>(() => isar.todos.putSync(newTodo));
+    await isar.writeTxn(() async => isar.todos.put(newTodo));
   }
 
-  // 3. UPDATE: Mengubah status selesai/belum (TODO)
   Future<void> updateTodoStatus(Id id, bool isCompleted) async {
     final isar = await db;
-    final todo = await isar.todos.get(id); 
+    final todo = await isar.todos.get(id);
     if (todo != null) {
       todo.isCompleted = isCompleted;
-      isar.writeTxnSync(() => isar.todos.putSync(todo)); 
+      await isar.writeTxn(() async => isar.todos.put(todo));
     }
   }
 
-  // 4. DELETE: Menghapus data (TODO)
   Future<void> deleteTodo(Id id) async {
     final isar = await db;
-    isar.writeTxnSync(() => isar.todos.deleteSync(id));
+    await isar.writeTxn(() async => isar.todos.delete(id));
   }
 
-  // 5. READ & REACTIVE: (TODO)
   Stream<List<Todo>> listenToTodos() async* {
     final isar = await db;
     yield* isar.todos.where().watch(fireImmediately: true);
   }
 
-  // ===================== UTS BOOKMARK METHODS =====================
+  // ===================== BOOKMARK METHODS =====================
 
-  // 6. BOOKMARK: Simpan produk
   Future<void> saveBookmark(BookmarkModel bookmark) async {
     final isar = await db;
-    isar.writeTxnSync<int>(() => isar.bookmarkModels.putSync(bookmark));
+    await isar.writeTxn(() async => isar.bookmarkModels.put(bookmark));
   }
 
-  // 7. BOOKMARK: Hapus berdasarkan productId
   Future<void> removeBookmark(String productId) async {
     final isar = await db;
-    isar.writeTxnSync(() {
-      isar.bookmarkModels.filter().productIdEqualTo(productId).deleteAllSync();
-    });
+    final items = await isar.bookmarkModels
+        .filter()
+        .productIdEqualTo(productId)
+        .findAll();
+    final ids = items.map((e) => e.id).toList();
+    await isar.writeTxn(() async => isar.bookmarkModels.deleteAll(ids));
   }
 
-  // 8. BOOKMARK: Cek status
   Future<bool> isBookmarked(String productId) async {
     final isar = await db;
-    final item = await isar.bookmarkModels.filter().productIdEqualTo(productId).findFirst();
+    final item = await isar.bookmarkModels
+        .filter()
+        .productIdEqualTo(productId)
+        .findFirst();
     return item != null;
   }
 
-  // 9. BOOKMARK: Reactive Stream (Akan urut dari yang paling baru disimpan)
   Stream<List<BookmarkModel>> listenToBookmarks() async* {
     final isar = await db;
-    yield* isar.bookmarkModels.where().sortBySavedAtDesc().watch(fireImmediately: true);
+    yield* isar.bookmarkModels
+        .where()
+        .sortBySavedAtDesc()
+        .watch(fireImmediately: true);
   }
 }

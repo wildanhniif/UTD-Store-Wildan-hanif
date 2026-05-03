@@ -3,31 +3,29 @@ import 'package:logger/logger.dart';
 
 class ApiClient {
   final Dio dio;
-  final Logger logger = Logger(); // Alat cetak log keren
+  final Logger logger = Logger();
 
   ApiClient() : dio = Dio() {
-    // 1. Konfigurasi Dasar (Global)
-    // fakestoreapi.com sedang down/error, kita pakai Platzi API yang struktur datanya mirip
-    dio.options.baseUrl = 'https://api.escuelajs.co/api/v1'; 
-    dio.options.connectTimeout = const Duration(seconds: 10); // Maksimal tunggu 10 detik
+    // Menggunakan Platzi API (fakestoreapi.com sedang tidak stabil)
+    dio.options.baseUrl = 'https://api.escuelajs.co/api/v1';
+    dio.options.connectTimeout = const Duration(seconds: 10);
     dio.options.receiveTimeout = const Duration(seconds: 10);
 
-    // 2. Menambahkan Interceptor (Satpam)
+    // Interceptor Logger — Wajib per kriteria UTS Poin 2
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          logger.i('🌐 MENGIRIM REQUEST: [${options.method}] ${options.uri}');
-          // Di sinilah nanti Anda memasukkan Token jika API butuh login
-          return handler.next(options); // Lanjutkan request
+          logger.i('🌐 REQUEST → [${options.method}] ${options.uri}');
+          return handler.next(options);
         },
         onResponse: (response, handler) {
-          logger.i('✅ BERHASIL [${response.statusCode}]: ${response.requestOptions.uri}');
-          return handler.next(response); // Lanjutkan response ke aplikasi
+          logger.i('✅ RESPONSE ← [${response.statusCode}] ${response.requestOptions.uri}');
+          return handler.next(response);
         },
         onError: (DioException e, handler) {
-          logger.e('❌ ERROR [${e.response?.statusCode}]: ${e.requestOptions.uri}');
+          logger.e('❌ ERROR [${e.response?.statusCode}] ${e.requestOptions.uri}');
           logger.e('PESAN: ${e.message}');
-          return handler.next(e); // Lanjutkan error agar ditangkap oleh aplikasi
+          return handler.next(e);
         },
       ),
     );
