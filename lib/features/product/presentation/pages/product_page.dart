@@ -3,6 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
+import '../../todo/data/isar_service.dart';
+import '../../bookmark/domain/bookmark_model.dart';
+import '../domain/product_model.dart';
 
 class ProductPage extends StatelessWidget {
   const ProductPage({super.key});
@@ -13,6 +16,13 @@ class ProductPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Katalog BLoC UTD'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite),
+            color: Colors.pink,
+            onPressed: () {
+              context.push('/bookmark');
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.android),
             onPressed: () {
@@ -80,7 +90,13 @@ class ProductPage extends StatelessWidget {
                       overflow: TextOverflow.ellipsis, // Agar judul panjang dipotong
                     ),
                     subtitle: Text('ID: ${item.id}'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        BookmarkButton(product: item),
+                        const Icon(Icons.arrow_forward_ios, size: 16),
+                      ],
+                    ),
                     onTap: () {
                       context.push('/detail/${item.id}');
                     },
@@ -94,6 +110,56 @@ class ProductPage extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
+    );
+  }
+}
+
+// Widget tombol Favorite yang memiliki state mandiri (Terkoneksi dengan Isar)
+class BookmarkButton extends StatefulWidget {
+  final Product product;
+  const BookmarkButton({super.key, required this.product});
+
+  @override
+  State<BookmarkButton> createState() => _BookmarkButtonState();
+}
+
+class _BookmarkButtonState extends State<BookmarkButton> {
+  final IsarService _isarService = IsarService();
+  bool _isBookmarked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkStatus();
+  }
+
+  Future<void> _checkStatus() async {
+    final status = await _isarService.isBookmarked(widget.product.id);
+    if (mounted) {
+      setState(() => _isBookmarked = status);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(
+        _isBookmarked ? Icons.favorite : Icons.favorite_border,
+        color: _isBookmarked ? Colors.pink : Colors.grey,
+      ),
+      onPressed: () async {
+        if (_isBookmarked) {
+          await _isarService.removeBookmark(widget.product.id);
+        } else {
+          final bookmark = BookmarkModel()
+            ..productId = widget.product.id
+            ..name = widget.product.name
+            ..image = widget.product.image
+            ..savedAt = DateTime.now(); // 🔥 UTS Logic: Menyisipkan Timestamp saat ditekan!
+          await _isarService.saveBookmark(bookmark);
+        }
+        _checkStatus();
+      },
     );
   }
 }
