@@ -12,16 +12,29 @@ class IsarService {
 
   // 1. Membuka koneksi ke Database
   Future<Isar> openDB() async {
-    // Jika sudah pernah dibuka, pakai yang sudah ada
-    if (Isar.instanceNames.isEmpty) {
-      final dir = await getApplicationDocumentsDirectory(); // Cari folder HP
+    // Jika sudah ada instance yang terbuka (dengan skema yang sama), pakai itu
+    if (Isar.instanceNames.isNotEmpty) {
+      final existing = Isar.getInstance();
+      if (existing != null) return existing;
+    }
+    
+    final dir = await getApplicationDocumentsDirectory();
+    try {
       return await Isar.open(
-        [TodoSchema, BookmarkModelSchema], // Masukkan skema yang dihasilkan Build Runner
+        [TodoSchema, BookmarkModelSchema],
         directory: dir.path,
       );
+    } catch (e) {
+      // Jika skema konflik (database lama), hapus dan buka ulang
+      await Isar.open(
+        [TodoSchema, BookmarkModelSchema],
+        directory: dir.path,
+        name: 'utd_db',
+      );
+      return Isar.getInstance('utd_db')!;
     }
-    return Future.value(Isar.getInstance());
   }
+
 
   // 2. CREATE: Menyimpan data baru (TODO)
   Future<void> saveTodo(Todo newTodo) async {
