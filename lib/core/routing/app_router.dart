@@ -13,10 +13,20 @@ import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/bookmark/presentation/pages/bookmark_page.dart';
 
 class AppRouter {
-  // Mendefinisikan konfigurasi Router utama
+  // Flag untuk memastikan Splash selalu tampil di awal (fresh launch)
+  static bool _splashShown = false;
+  static bool get splashShown => _splashShown;
+  static set splashShown(bool v) => _splashShown = v;
+
   static final router = GoRouter(
-    initialLocation: '/splash', // Mulai dari Splash Screen terlebih dahulu
-    // Daftar semua jalan yang ada di aplikasi
+    initialLocation: '/splash',
+    redirect: (context, state) {
+      // Jika splash belum ditampilkan dan user bukan di /splash, paksa ke /splash
+      if (!_splashShown && state.uri.path != '/splash') {
+        return '/splash';
+      }
+      return null; // Tidak ada redirect
+    },
     routes: [
       GoRoute(
         path: '/', // Path beranda

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/config/student_config.dart';
+import '../../../../core/routing/app_router.dart';
 import '../../domain/splash_service.dart';
 
 class SplashPage extends StatefulWidget {
@@ -20,10 +21,11 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _startDelay() async {
-    // Tunggu sesuai digit terakhir NIM
     await _splashService.initializeApp();
     if (mounted) {
-      context.go('/'); // Pindah ke Beranda menggunakan GoRouter (bukan Navigator.push)
+      // Tandai splash sudah ditampilkan agar redirect tidak memaksa kembali ke /splash
+      AppRouter.splashShown = true;
+      context.go('/');
     }
   }
 
